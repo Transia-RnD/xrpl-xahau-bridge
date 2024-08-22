@@ -7,7 +7,6 @@ authors = ["Denis Angell <dangell@transia.co>"]
 [tool.poetry.dependencies]
 python = "^3.9.6"
 pyyaml = "^6.0.1"
-dotenv-python = "^0.0.1"
 python-dotenv = "^1.0.1"
 transia-xrpl-py = "^1.7.0a11"
 

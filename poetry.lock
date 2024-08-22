@@ -76,16 +76,6 @@ wrapt = ">=1.10,<2"
 dev = ["PyTest", "PyTest-Cov", "bump2version (<1)", "sphinx (<2)", "tox"]
 
 [[package]]
-name = "dotenv-python"
-version = "0.0.1"
-description = "Read .env(-ish) configuration file for python web applications."
-optional = false
-python-versions = "*"
-files = [
-    {file = "dotenv-python-0.0.1.zip", hash = "sha256:362e170ca8fd69a70c1aca1fda2ddad0ac270e161e81e59f4039ec11decc14fa"},
-]
-
-[[package]]
 name = "ecpy"
 version = "1.2.5"
 description = "Pure Pyhton Elliptic Curve Library"
@@ -646,4 +636,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.6"
-content-hash = "f08980d64c67673f5eaf3347cc490c20c08f38322e8ed6be7dec070c063c7c49"
+content-hash = "e596f16270b40b1768c15b9d12c551ef3cfdfc82de68764a7e5d763f0083012d"
