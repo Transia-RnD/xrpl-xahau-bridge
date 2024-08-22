@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "xrpl-xahau-bridge"
+version = "1.0.0"
+description = "XRPL Xahau Bridge"
+authors = ["Denis Angell <dangell@transia.co>"]
+
+[tool.poetry.dependencies]
+python = "^3.9.6"
+pyyaml = "^6.0.1"
+dotenv-python = "^0.0.1"
+python-dotenv = "^1.0.1"
+transia-xrpl-py = "^1.7.0a11"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.2.1"
+flake8 = "^3.8.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
