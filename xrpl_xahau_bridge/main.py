@@ -16,8 +16,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-xrpl_allowed_tts: List[str] = ["Payment", "NFTokenBurn"]
-xahau_allowed_tts: List[str] = ["Payment", "URITokenBurn"]
+allowed_tts: List[str] = ["Payment", "NFTokenBurn", "URITokenBurn"]
 
 
 async def bridge_payment_txn(txn: Dict[str, Any]):
@@ -35,7 +34,7 @@ async def bridge_payment_txn(txn: Dict[str, Any]):
             destination=txn["Account"],
             amount=txn["Amount"],
         )
-        xrpl_net = AsyncJsonRpcClient(os.environ.get("XRPL_RPC_URL"))
+        xrpl_net = AsyncJsonRpcClient(os.environ.get("RPC_URL"))
         wallet: Wallet = Wallet(os.environ.get("BRIDGE_ACCOUNT_SEED"), 0)
         prepared_txn = await autofill_and_sign(new_txn, wallet, xrpl_net)
         tx_response = await submit(prepared_txn, xrpl_net)
@@ -52,9 +51,9 @@ async def bridge_payment_txn(txn: Dict[str, Any]):
             account=txn["Destination"],
             destination=txn["Account"],
             amount=txn["Amount"],
-            network_id=int(os.environ.get("XAHAU_NETWORK_ID")),
+            network_id=int(os.environ.get("NETWORK_ID")),
         )
-        xrpl_net = AsyncJsonRpcClient(os.environ.get("XAHAU_RPC_URL"))
+        xrpl_net = AsyncJsonRpcClient(os.environ.get("RPC_URL"))
         wallet: Wallet = Wallet(os.environ.get("BRIDGE_ACCOUNT_SEED"), 0)
         prepared_txn = await autofill_and_sign(new_txn, wallet, xrpl_net)
         tx_response = await submit(prepared_txn, xrpl_net)
@@ -84,20 +83,15 @@ async def bridge_txn(txn: Dict[str, Any]):
     raise Exception("XPOP bridge transaction not implemented yet")
 
 
-async def validate_xpop(xpop: Dict[str, Any], source: str) -> bool:
+async def validate_xpop(xpop: Dict[str, Any]) -> bool:
     """
     Validate an XPOP.
 
     :param xpop: The XPOP to validate.
-    :param source: The source of the XPOP (xrpl or xahau).
     :return: True if the XPOP is valid, False otherwise.
     """
-    print(f"Validating XPOP from source: {source}")
-    vl_key: str = (
-        os.environ.get("XRPL_UNL_KEY")
-        if source == "xrpl"
-        else os.environ.get("XAHAU_UNL_KEY")
-    )
+    print(f"Validating XPOP")
+    vl_key: str = os.environ.get("UNL_KEY")
     account: str = os.environ.get("BRIDGE_ACCOUNT")
 
     transaction = xpop["transaction"]
@@ -106,14 +100,9 @@ async def validate_xpop(xpop: Dict[str, Any], source: str) -> bool:
         print("Transaction not for bridge account")
         return {"verified": False, "info": "Transaction not for bridge account"}
 
-    if source == "xrpl":
-        if tx["TransactionType"] not in xrpl_allowed_tts:
-            print("Xrpl transaction type not allowed")
-            return {"verified": False, "info": "Xrpl transaction type not allowed"}
-    if source == "xahau":
-        if tx["TransactionType"] not in xahau_allowed_tts:
-            print("Xahau transaction type not allowed")
-            return {"verified": False, "info": "Xahau transaction type not allowed"}
+    if tx["TransactionType"] not in allowed_tts:
+        print("Transaction type not allowed")
+        return {"verified": False, "info": "Transaction type not allowed"}
 
     verification_result = verify(xpop, vl_key)
 
@@ -128,7 +117,7 @@ async def validate_xpop(xpop: Dict[str, Any], source: str) -> bool:
         return verification_result
 
 
-async def process_file(file_path: str, source: str):
+async def process_file(file_path: str):
     """
     Asynchronously process a new file.
 
@@ -138,7 +127,7 @@ async def process_file(file_path: str, source: str):
     file_content: str = read_file(file_path)
     file_content = bytes.fromhex(file_content).decode("utf-8")
     file_content = json.loads(file_content)
-    result: Dict[str, Any] = await validate_xpop(file_content, source)
+    result: Dict[str, Any] = await validate_xpop(file_content)
     if result["verified"]:
         print("XPOP verified, bridging transaction")
         await bridge_txn(result["tx_blob"])
@@ -146,7 +135,7 @@ async def process_file(file_path: str, source: str):
         print(f"XPOP validation failed: {result['info']}")
 
 
-async def check_for_new_entries(folder_path: str, source: str, check_interval: int = 5):
+async def check_for_new_entries(folder_path: str, check_interval: int = 5):
     """
     Check a folder for new entries at regular intervals.
 
@@ -166,7 +155,7 @@ async def check_for_new_entries(folder_path: str, source: str, check_interval: i
                 print(f"New files detected: {new_files}")
                 await asyncio.gather(
                     *(
-                        process_file(os.path.join(folder_path, file), source)
+                        process_file(os.path.join(folder_path, file))
                         for file in new_files
                     )
                 )
