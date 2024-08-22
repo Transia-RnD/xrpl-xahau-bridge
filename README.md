@@ -41,5 +41,5 @@ Submit the following transaction to the Xahau Ledger
 
 ## Todo
 
-- Add NFToke/URIToken Support
+- Add NFToken/URIToken Support
 - Use Google KMS for the bridge account/seed
