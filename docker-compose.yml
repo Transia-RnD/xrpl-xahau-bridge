@@ -61,7 +61,6 @@ services:
     volumes:
         - ./xrpl/store:/usr/src/app/store
     environment:
-      - SOURCE=xrpl
       - FOLDER_PATH=/usr/src/app/store/xpop
       - RPC_URL=https://xahau.network
       - UNL_KEY=ED45D1840EE724BE327ABE9146503D5848EFD5F38B6D5FEDE71E80ACCE5E6E738B
@@ -75,7 +74,6 @@ services:
     volumes:
         - ./xahau/store:/usr/src/app/store
     environment:
-      - SOURCE=xahau
       - FOLDER_PATH=/usr/src/app/store/xpop
       - RPC_URL=https://xrplcluster.com
       - UNL_KEY=EDA46E9C39B1389894E690E58914DC1029602870370A0993E5B87C4A24EAF4A8E8
