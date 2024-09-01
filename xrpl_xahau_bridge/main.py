@@ -8,9 +8,9 @@ import xrpl
 from xrpl.asyncio.clients import AsyncJsonRpcClient
 from xrpl.wallet import Wallet
 from xrpl.asyncio.transaction import submit, autofill_and_sign
-from xrpl.models.transactions import Payment
+from xrpl.models.transactions import Payment, Invoke
 
-from xrpl_xahau_bridge.utils import read_file
+from xrpl_xahau_bridge.utils import read_file, has_forward_id, is_invoke, get_hook_parameters
 from xrpl_xahau_bridge.xpop import verify
 from dotenv import load_dotenv
 
@@ -47,12 +47,49 @@ async def bridge_payment_txn(txn: Dict[str, Any]):
         return
     else:
         print("Sending transaction to Xahau")
-        new_txn = Payment(
-            account=txn["Destination"],
-            destination=txn["Account"],
-            amount=txn["Amount"],
-            network_id=int(os.environ.get("NETWORK_ID")),
-        )
+        forward_id: str = has_forward_id(memos=txn['Memos'])
+        print(f"Forward ID: {forward_id}")
+        deliver_id: str = forward_id if forward_id else txn["Account"]
+        invoke_txn: bool = is_invoke(txn, memos=txn['Memos'])
+        print(f"Invoke transaction: {invoke_txn}")
+        hook_parameters = get_hook_parameters(memos=txn['Memos'])
+        if invoke_txn:
+            print("Invoke transaction detected")
+            txn_dict: Dict[str, Any] = {
+                "Account": txn["Destination"],
+                "Destination": deliver_id,
+                "NetworkID": int(os.environ.get("NETWORK_ID")),
+            }
+            if hook_parameters:
+                txn_dict["HookParameters"] = hook_parameters
+            
+            new_txn = Invoke.from_xrpl(txn_dict)
+            xrpl_net = AsyncJsonRpcClient(os.environ.get("RPC_URL"))
+            wallet: Wallet = Wallet(os.environ.get("BRIDGE_ACCOUNT_SEED"), 0)
+            prepared_txn = await autofill_and_sign(new_txn, wallet, xrpl_net)
+            tx_response = await submit(prepared_txn, xrpl_net)
+            print(f"Xahau transaction response: {tx_response.result}")
+            if (
+                tx_response.result["engine_result"] != "tesSUCCESS"
+                and tx_response.result["engine_result"] != "terQUEUED"
+            ):
+                raise Exception(
+                    f"Xahau transaction failed: {tx_response.result['engine_result']}"
+                )
+            print("Transaction successfully sent to Xahau")
+            return
+        
+        print("Payment transaction detected")
+        txn_dict: Dict[str, Any] = {
+            "Account": txn["Destination"],
+            "Destination": deliver_id,
+            "Amount": txn["Amount"],
+            "NetworkID": int(os.environ.get("NETWORK_ID")),
+        }
+        if hook_parameters:
+            txn_dict["HookParameters"] = hook_parameters
+        new_txn = Payment.from_xrpl(txn_dict)
+        
         xrpl_net = AsyncJsonRpcClient(os.environ.get("RPC_URL"))
         wallet: Wallet = Wallet(os.environ.get("BRIDGE_ACCOUNT_SEED"), 0)
         prepared_txn = await autofill_and_sign(new_txn, wallet, xrpl_net)
