@@ -8,7 +8,8 @@ authors = ["Denis Angell <dangell@transia.co>"]
 python = "^3.9.6"
 pyyaml = "^6.0.1"
 python-dotenv = "^1.0.1"
-transia-xrpl-py = "^1.7.0a11"
+xrpl-py = "^3.0.0"
+fireblocks = "^4.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.1"

@@ -1,0 +1,3 @@
+- /users POST (Create/Whitelist User)
+- /users/status GET (Get User Status (KYC/AML))
+- /users GET (Get User)
