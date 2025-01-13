@@ -1,0 +1,8 @@
+{
+    "TransactionType": "EscrowCreate",
+    "Account": "r223rsyz1cfqPbjmiX6oYu1hFgNwCkWZH",
+    "Destination": "r223rsyz1cfqPbjmiX6oYu1hFgNwCkWZH",
+    "Amount": "1000000",
+    "FinishAfter": 787680000,
+    "OperationLimit": 21337
+}
